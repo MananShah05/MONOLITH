@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# secrets and important configurations
+/secrets/
+/important/
+.env*.local
+*.secret
+*.secrets
+*.credential
+*.credentials
+*.key
+*.pem
+*secret*
+*important*
+
+# scratch and test temp files
+/scratch/
+
