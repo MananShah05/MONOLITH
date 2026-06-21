@@ -130,12 +130,14 @@ export default function Home() {
     const savedTheme = localStorage.getItem("theme");
     const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const useDark = savedTheme === "dark" || (!savedTheme && systemPrefersDark);
-    setIsDarkMode(useDark);
     if (useDark) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
+    setTimeout(() => {
+      setIsDarkMode(useDark);
+    }, 0);
   }, []);
 
   const toggleTheme = () => {
@@ -153,8 +155,8 @@ export default function Home() {
   // Overlay States
   const [searchOpen, setSearchOpen] = useState(false);
   const [bagOpen, setBagOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
   const [cartItems, setCartItems] = useState([]);
+  const cartCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
   
   // Search State
   const [searchQuery, setSearchQuery] = useState("");
@@ -170,6 +172,8 @@ export default function Home() {
   const [selectedSize, setSelectedSize] = useState("M");
   const [isAdding, setIsAdding] = useState(false);
   const [bagButtonText, setBagButtonText] = useState("ADD TO BAG — $180");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // REFS
   const canvasRef = useRef(null);
@@ -373,11 +377,7 @@ export default function Home() {
     }
   };
 
-  // Sync Cart Count automatically
-  useEffect(() => {
-    const totalQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
-    setCartCount(totalQty);
-  }, [cartItems]);
+
 
   const handleAddToBag = () => {
     setIsAdding(true);
@@ -473,6 +473,23 @@ export default function Home() {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
+  // Detect mobile viewport
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Close mobile menu on Escape
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
   return (
     <ReactLenis root>
       <div className="bg-background-light dark:bg-background-dark text-stone-900 dark:text-stone-100 font-sans antialiased">
@@ -525,13 +542,89 @@ export default function Home() {
                   </span>
                 )}
               </button>
-              <button className="md:hidden material-symbols-outlined text-xl hover:opacity-50 transition-opacity cursor-pointer" aria-label="Menu">menu</button>
+              <button onClick={() => setMobileMenuOpen(true)} className="md:hidden material-symbols-outlined text-xl hover:opacity-50 transition-opacity cursor-pointer" aria-label="Menu">menu</button>
             </div>
           </div>
         </nav>
 
+        {/* ── MOBILE NAV DRAWER ── */}
+        <div
+          className={`mobile-nav-backdrop ${mobileMenuOpen ? 'open' : ''}`}
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        <div className={`mobile-nav-drawer ${mobileMenuOpen ? 'open' : ''}`}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-stone-200 dark:border-stone-800">
+            <span className="text-lg font-semibold tracking-[0.25em]" style={{ fontFamily: 'var(--font-cormorant), serif' }}>MONOLITH</span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="material-symbols-outlined text-2xl hover:opacity-50 transition-opacity"
+              aria-label="Close menu"
+            >
+              close
+            </button>
+          </div>
+          <nav className="flex flex-col flex-1">
+            <a
+              className="mobile-nav-link"
+              href="#shop"
+              onClick={(e) => { handleScrollToSection(e, '.purchase-card'); setMobileMenuOpen(false); }}
+            >
+              Shop
+              <span className="material-symbols-outlined text-lg opacity-40">arrow_forward</span>
+            </a>
+            <a
+              className="mobile-nav-link"
+              href="#about"
+              onClick={(e) => { handleScrollToSection(e, '#about'); setMobileMenuOpen(false); }}
+            >
+              About
+              <span className="material-symbols-outlined text-lg opacity-40">arrow_forward</span>
+            </a>
+            <a
+              className="mobile-nav-link"
+              href="#look"
+              onClick={(e) => { handleScrollToSection(e, '#lookbook'); setMobileMenuOpen(false); }}
+            >
+              Lookbook
+              <span className="material-symbols-outlined text-lg opacity-40">arrow_forward</span>
+            </a>
+            <button
+              className="mobile-nav-link"
+              onClick={() => { setSearchOpen(true); setMobileMenuOpen(false); }}
+            >
+              Search
+              <span className="material-symbols-outlined text-lg opacity-40">search</span>
+            </button>
+            <button
+              className="mobile-nav-link"
+              onClick={() => { setBagOpen(true); setMobileMenuOpen(false); }}
+            >
+              <span className="flex items-center gap-2">
+                Bag
+                {cartCount > 0 && (
+                  <span className="bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </span>
+              <span className="material-symbols-outlined text-lg opacity-40">shopping_bag</span>
+            </button>
+          </nav>
+          <div className="px-6 py-6 border-t border-stone-200 dark:border-stone-800">
+            <button
+              onClick={() => { toggleTheme(); }}
+              className="flex items-center gap-3 w-full text-sm tracking-wider uppercase font-medium text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+            >
+              <span className="material-symbols-outlined text-xl">
+                {isDarkMode ? 'light_mode' : 'dark_mode'}
+              </span>
+              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+            </button>
+          </div>
+        </div>
+
         {/* 3. Hero 3D Scroll Section */}
-        <section ref={scrollSectionRef} className="scroll-container relative w-full h-[500vh]">
+        <section ref={scrollSectionRef} className={`scroll-container relative w-full ${isMobile ? 'h-[300vh]' : 'h-[500vh]'}`}>
           
           {/* Sticky Canvas & Text Container */}
           <div className="sticky-viewport">
@@ -541,13 +634,13 @@ export default function Home() {
             {/* Editorial Sidebars */}
             <div ref={sidebarLeftRef} className="editorial-sidebar editorial-sidebar-left flex-desktop active">
               <span className="text-[10px] tracking-[0.4em] uppercase font-semibold [writing-mode:vertical-lr] rotate-180">500GSM ITALIAN COTTON</span>
-              <div className="w-[1px] h-16 bg-ink/30 dark:bg-white/30"></div>
+              <div className="w-[1px] h-16 bg-white/30"></div>
               <span className="text-[10px] tracking-[0.2em] font-light">01</span>
             </div>
 
             <div ref={sidebarRightRef} className="editorial-sidebar editorial-sidebar-right flex-desktop active">
               <span className="text-[10px] tracking-[0.2em] font-light">03</span>
-              <div className="w-[1px] h-16 bg-ink/30 dark:bg-white/30"></div>
+              <div className="w-[1px] h-16 bg-white/30"></div>
               <span className="text-[10px] tracking-[0.4em] uppercase font-semibold [writing-mode:vertical-lr]">HEAVYWEIGHT CONSTRUCTION</span>
             </div>
 
@@ -704,7 +797,7 @@ export default function Home() {
                 variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } } }}
                 className="text-ink-muted-80 leading-loose text-lg font-light"
               >
-                The Monolith Hoodie is more than a garment; it is a sanctuary. We've stripped away the noise of fast fashion to focus on the essential: the relationship between the body, the fabric, and the environment.
+                The Monolith Hoodie is more than a garment; it is a sanctuary. We&apos;ve stripped away the noise of fast fashion to focus on the essential: the relationship between the body, the fabric, and the environment.
               </motion.p>
               <motion.div 
                 variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
@@ -923,7 +1016,7 @@ export default function Home() {
             <h2 className="text-4xl md:text-6xl font-display text-white mb-8 font-semibold">Your everyday essential, elevated.</h2>
             <a 
               onClick={(e) => handleScrollToSection(e, '.purchase-card')}
-              className="inline-block bg-white text-ink px-10 py-4 text-xs font-semibold uppercase tracking-wider rounded-full hover:bg-stone-100 transition-all transform active:scale-95 cursor-pointer" 
+              className="inline-block bg-white text-stone-900 px-10 py-4 text-xs font-semibold uppercase tracking-wider rounded-full hover:bg-stone-100 transition-all transform active:scale-95 cursor-pointer" 
               href="#shop">
               Buy Now
             </a>
@@ -1025,66 +1118,102 @@ export default function Home() {
               />
             </div>
 
-            {/* Suggested Searches */}
+
+            {/* Category Pills */}
             <div className="mt-10 text-center">
               <p className="text-[11px] tracking-[0.2em] uppercase text-stone-400 mb-4 font-semibold">
-                Suggested Searches
+                Browse Categories
               </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                {["Hoodie", "Trouser", "Mockneck", "Trench"].map((term) => (
+              <div className="flex flex-wrap justify-center gap-2">
+                {[
+                  { label: "Hoodie",    icon: "dry_cleaning" },
+                  { label: "Trouser",   icon: "straighten" },
+                  { label: "Mockneck",  icon: "checkroom" },
+                  { label: "Trench",    icon: "storm" },
+                  { label: "Coat",      icon: "ac_unit" },
+                  { label: "Jogger",    icon: "sprint" },
+                  { label: "Tee",       icon: "mode_cool" },
+                  { label: "Sweatpant", icon: "chair" },
+                ].map(({ label, icon }) => (
                   <button
-                    key={term}
-                    onClick={() => setSearchQuery(term)}
-                    className="px-6 py-2 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-[11px] tracking-[0.12em] uppercase font-semibold text-stone-700 dark:text-stone-300 rounded-full hover:bg-stone-900 dark:hover:bg-stone-100 hover:text-white dark:hover:text-stone-900 hover:border-stone-900 dark:hover:border-stone-100 transition-all duration-300 cursor-pointer"
+                    key={label}
+                    onClick={() => setSearchQuery(label)}
+                    className="flex items-center gap-1.5 px-5 py-2 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-[11px] tracking-[0.12em] uppercase font-semibold text-stone-700 dark:text-stone-300 rounded-full hover:bg-stone-900 dark:hover:bg-stone-100 hover:text-white dark:hover:text-stone-900 hover:border-stone-900 dark:hover:border-stone-100 transition-all duration-300 cursor-pointer"
                   >
-                    {term}
+                    <span className="material-symbols-outlined text-[14px] not-italic">{icon}</span>
+                    {label}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Filtered Search Results */}
-            {searchQuery.trim() !== "" && (
-              <div className="mt-12 space-y-6 max-h-[350px] overflow-y-auto pr-2">
-                <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 font-semibold text-center mb-4">
-                  Search Results
-                </p>
-                {[
-                  {
-                    name: "Luxury Oversized Hoodie",
-                    price: "$180.00",
-                    color: "Alabaster Cream / Stone Grey / Monolith Black",
-                    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBzbzr_8s7bNQcHkfVaT_bg7Hps3HO-bql35fODbLPTmqRwgTMldNCGzH7lZ0F5ICaTXot-kHNUaH0kGDEjUdLDUOwtqc4y_1IT5FQu81aMyZpaSVFsHHahKKzy4QQLRwHyf32CTciT7nB9yC8i3edqG6bdv5X8T1a8ucZkWNUaHSk25ZbiGEhkQQ0wHZ5wXTtDVAXJNo8yGUxA9dxt88xuQcjHqdyPexRbp3TjMtprG66kBIKgosF05SI4fh9GRTxrjr8L_y7gm8s"
-                  },
-                  {
-                    name: "Monolith Cargo Trouser",
-                    price: "$180.00",
-                    color: "Sandstone / Olive / Ink Black",
-                    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuC8dXrMRClNy28Q9nCMLCyQcPUSyugxNwXjytVTihx-I7F9gOZ_mV1TSszjBgNG4pWFCCDkATCVaSaerBMmBN_T61Kr2yyCSXHRr-DI9zPVcs8bbdSMZwuuYXVBJhQ-WaU6MlebhOByFZ2Dd1EhovCwANplaaSy4e2Iq928DCvoQNmexsqLJUBcWOw4UZzz-6VL1ixumvGsTkE7MbCL1jyEJ7fLxwC7GkDxxkWmQfcVMxUYINDZ8BsCW2oXtiDtCM9DZgg1bx3ok1U"
-                  },
-                  {
-                    name: "Architectural Mockneck",
-                    price: "$120.00",
-                    color: "Fog Grey / Off-White / Charcoal",
-                    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAKnfDzcxR1JYKzZTXsofKhw0RewlBoF29yYxVgQVnitotjeljkz6EPh68xy0MfS-Q_5F-GB8vXQ-ROJzBNdveJ3esKQtQQFiKhmpIRQ117YwKTgltVjl04RwVtGTHnKyir3Q0JNRDVZs8_7rJBfdBhTY5wgSPWRJ48JTCD8xJjmgEN10Co33ZQLxd4i4Qz1BWhV2D2ZmrdGVS3Xxr7l5adEsWMRboVbTG0DY8kW5AstMBCFEpAg7WLzG_ARmuliPP9mo0Cw3bv6lg"
-                  },
-                  {
-                    name: "Modular Wool Trench",
-                    price: "$350.00",
-                    color: "Monolith Black / Camel",
-                    img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCDPhVqXTAsrn672qdF_bB-SvEtRrqLTdeR_D3IrczHdSjYr6MYt4z0LzfTGx9gY7H1EmDZQ5upsynf-TtnLCPdHjYVFZYIYhKHeGEnEWuIL1YBfc8bS04pr3zLXSOGTzc_hNS1n1ji3sbKQ07mS7joBlZLblwr9MZ9xDbzFytJnAQRtWbnBetyuEnoPVzBOM9peHspKkIPWZaHZoFRB7jmaybVc8zIURZRtiUh1cRq2dd8PQ5hGLUrzOqgXlDFn3S24IfeIUSJn3o"
-                  }
-                ]
-                  .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .map((p, idx) => (
-                    <div key={idx} className="flex gap-4 items-center bg-white/70 dark:bg-stone-900/70 p-4 rounded-xl border border-stone-200/60 dark:border-stone-800 hover:bg-white/90 dark:hover:bg-stone-900/90 transition-colors">
-                      <div className="w-14 aspect-[3/4] bg-stone-100 dark:bg-stone-800 overflow-hidden rounded-md flex-shrink-0">
-                        <img className="w-full h-full object-cover" src={p.img} alt={p.name} />
+            {searchQuery.trim() !== "" && (() => {
+              const catalogue = [
+                {
+                  name: "Luxury Oversized Hoodie",
+                  price: "$180.00",
+                  color: "Alabaster Cream / Stone Grey / Monolith Black",
+                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBzbzr_8s7bNQcHkfVaT_bg7Hps3HO-bql35fODbLPTmqRwgTMldNCGzH7lZ0F5ICaTXot-kHNUaH0kGDEjUdLDUOwtqc4y_1IT5FQu81aMyZpaSVFsHHahKKzy4QQLRwHyf32CTciT7nB9yC8i3edqG6bdv5X8T1a8ucZkWNUaHSk25ZbiGEhkQQ0wHZ5wXTtDVAXJNo8yGUxA9dxt88xuQcjHqdyPexRbp3TjMtprG66kBIKgosF05SI4fh9GRTxrjr8L_y7gm8s"
+                },
+                {
+                  name: "Monolith Cargo Trouser",
+                  price: "$180.00",
+                  color: "Sandstone / Olive / Ink Black",
+                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuC8dXrMRClNy28Q9nCMLCyQcPUSyugxNwXjytVTihx-I7F9gOZ_mV1TSszjBgNG4pWFCCDkATCVaSaerBMmBN_T61Kr2yyCSXHRr-DI9zPVcs8bbdSMZwuuYXVBJhQ-WaU6MlebhOByFZ2Dd1EhovCwANplaaSy4e2Iq928DCvoQNmexsqLJUBcWOw4UZzz-6VL1ixumvGsTkE7MbCL1jyEJ7fLxwC7GkDxxkWmQfcVMxUYINDZ8BsCW2oXtiDtCM9DZgg1bx3ok1U"
+                },
+                {
+                  name: "Architectural Mockneck",
+                  price: "$120.00",
+                  color: "Fog Grey / Off-White / Charcoal",
+                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAKnfDzcxR1JYKzZTXsofKhw0RewlBoF29yYxVgQVnitotjeljkz6EPh68xy0MfS-Q_5F-GB8vXQ-ROJzBNdveJ3esKQtQQFiKhmpIRQ117YwKTgltVjl04RwVtGTHnKyir3Q0JNRDVZs8_7rJBfdBhTY5wgSPWRJ48JTCD8xJjmgEN10Co33ZQLxd4i4Qz1BWhV2D2ZmrdGVS3Xxr7l5adEsWMRboVbTG0DY8kW5AstMBCFEpAg7WLzG_ARmuliPP9mo0Cw3bv6lg"
+                },
+                {
+                  name: "Modular Wool Trench",
+                  price: "$350.00",
+                  color: "Monolith Black / Camel",
+                  img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCDPhVqXTAsrn672qdF_bB-SvEtRrqLTdeR_D3IrczHdSjYr6MYt4z0LzfTGx9gY7H1EmDZQ5upsynf-TtnLCPdHjYVFZYIYhKHeGEnEWuIL1YBfc8bS04pr3zLXSOGTzc_hNS1n1ji3sbKQ07mS7joBlZLblwr9MZ9xDbzFytJnAQRtWbnBetyuEnoPVzBOM9peHspKkIPWZaHZoFRB7jmaybVc8zIURZRtiUh1cRq2dd8PQ5hGLUrzOqgXlDFn3S24IfeIUSJn3o"
+                },
+                {
+                  name: "Heritage Wool Coat",
+                  price: "$420.00",
+                  color: "Camel / Charcoal / Off-White",
+                  img: "https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=400&h=600&fit=crop&q=80"
+                },
+                {
+                  name: "Monolith Slim Jogger",
+                  price: "$140.00",
+                  color: "Stone Grey / Ash White / Onyx",
+                  img: "https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=400&h=600&fit=crop&q=80"
+                },
+                {
+                  name: "Heavyweight Essential Tee",
+                  price: "$80.00",
+                  color: "Alabaster / Slate / Bone",
+                  img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80"
+                },
+                {
+                  name: "Tapered Sweatpant",
+                  price: "$160.00",
+                  color: "Parchment / Charcoal / Slate Blue",
+                  img: "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=400&h=600&fit=crop&q=80"
+                },
+              ];
+              const results = catalogue.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+              return (
+                <div className="mt-10 space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                  <p className="text-[10px] tracking-[0.2em] uppercase text-stone-400 font-semibold text-center mb-4">
+                    Search Results {results.length > 0 && `— ${results.length} found`}
+                  </p>
+                  {results.map((p, idx) => (
+                    <div key={idx} className="flex gap-4 items-center bg-white/70 dark:bg-stone-900/70 p-3 rounded-xl border border-stone-200/60 dark:border-stone-800 hover:bg-white/95 dark:hover:bg-stone-900/95 transition-colors group">
+                      <div className="w-16 h-20 bg-stone-100 dark:bg-stone-800 overflow-hidden rounded-lg flex-shrink-0">
+                        <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src={p.img} alt={p.name} />
                       </div>
-                      <div className="flex-1 text-left">
-                        <h4 className="font-semibold text-stone-900 dark:text-stone-100 text-sm">{p.name}</h4>
-                        <p className="text-[10px] text-stone-400 mt-0.5">{p.color}</p>
-                        <p className="font-medium text-stone-900 dark:text-stone-100 mt-1 text-xs">{p.price}</p>
+                      <div className="flex-1 text-left min-w-0">
+                        <h4 className="font-semibold text-stone-900 dark:text-stone-100 text-sm leading-tight">{p.name}</h4>
+                        <p className="text-[10px] text-stone-400 mt-1 truncate">{p.color}</p>
+                        <p className="font-semibold text-stone-900 dark:text-stone-100 mt-1.5 text-sm">{p.price}</p>
                       </div>
                       <button
                         onClick={() => {
@@ -1107,65 +1236,68 @@ export default function Home() {
                           setSearchOpen(false);
                           setBagOpen(true);
                         }}
-                        className="bg-stone-900 text-white px-4 py-2 text-[10px] tracking-[0.15em] uppercase font-semibold hover:bg-stone-700 transition-colors rounded-full"
+                        className="flex-shrink-0 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 px-4 py-2 text-[10px] tracking-[0.15em] uppercase font-semibold hover:bg-stone-700 dark:hover:bg-stone-300 transition-colors rounded-full"
                       >
-                        Add to Bag
+                        Add
                       </button>
                     </div>
                   ))}
-                {
-                  [
-                    { name: "Luxury Oversized Hoodie" },
-                    { name: "Monolith Cargo Trouser" },
-                    { name: "Architectural Mockneck" },
-                    { name: "Modular Wool Trench" }
-                  ].filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                    <p className="text-center text-sm text-stone-400 py-8">No items match your search query.</p>
-                  )
-                }
-              </div>
-            )}
-
-            {/* Lookbook Cards when search query is empty */}
-            {searchQuery.trim() === "" && (
-              <div className="mt-20 grid grid-cols-2 gap-6 mb-16">
-                <div 
-                  onClick={() => {
-                    setSearchOpen(false);
-                    const element = document.querySelector('.purchase-card');
-                    if (element) element.scrollIntoView({ behavior: "smooth" });
-                  }} 
-                  className="relative aspect-[3/4] overflow-hidden rounded-lg group cursor-pointer"
-                >
-                  <div className="absolute inset-0 bg-stone-900/10 group-hover:bg-transparent transition-colors duration-500 z-10" />
-                  <img
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-CFV3WFomdfvuuQQO9ZrOVsO5BLo20AodD5_p_mYqNPaP8oEYLJQXyUBIAQ8tO_ItvrVm-1CM65FosTzLYm8kipSaJgG5a66Yq0S0iyX4AEg0BQdPHE-t0-6-s1zye14xcNvWFjfhm3a1Lv6Qe2l_z0HGUcW7fDAYbamj8jSLVQ4MbC6NcaGMqHjccIF0h825RbI9TTW_xuR7IEWZOaZbfCBFsfKPAKEvMFQKS3oN8bfdB_mvCorn5RMf4zeuIVL8hrEezii4lVI"
-                    alt="The Archival Hoodie"
-                  />
-                  <div className="absolute bottom-5 left-5 text-white z-20">
-                    <p className="text-[10px] tracking-[0.15em] uppercase opacity-80 mb-1">Collection 01</p>
-                    <h3 className="text-xl font-semibold" style={{ fontFamily: "var(--font-cormorant), serif" }}>The Archival Hoodie</h3>
-                  </div>
+                  {results.length === 0 && (
+                    <p className="text-center text-sm text-stone-400 py-10">No items match &quot;{searchQuery}&quot;.</p>
+                  )}
                 </div>
-                <div 
-                  onClick={() => {
-                    setSearchOpen(false);
-                    const element = document.querySelector('.purchase-card');
-                    if (element) element.scrollIntoView({ behavior: "smooth" });
-                  }} 
-                  className="relative aspect-[3/4] overflow-hidden rounded-lg group cursor-pointer"
-                >
-                  <div className="absolute inset-0 bg-stone-900/10 group-hover:bg-transparent transition-colors duration-500 z-10" />
-                  <img
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8p4alS-V7pjyeK3uYbxQzdCKMyLEIiRQA6FRjFc6L0zD0Z7ed-RG-Qhk7iHWheilF6lYYIb4r8lFGa8usDA7vfUm4E3uqsA03hwUzWgqe5pvHkqkQImdvfxL4qu66Te64SLRUOVvAqnmZpNEfOP0uFeTNsJrm3-FtBvHqrSFIKESzjulaCMzSUftQaH37vkKytodvUZZhS1G5_BDICfFyJ567jBVmNCr5TLWi9nCcCUc_UBfUZljwLRpMgYEoxBb45bzkqR9-jIY"
-                    alt="Modular Outerwear"
-                  />
-                  <div className="absolute bottom-5 left-5 text-white z-20">
-                    <p className="text-[10px] tracking-[0.15em] uppercase opacity-80 mb-1">New Arrival</p>
-                    <h3 className="text-xl font-semibold" style={{ fontFamily: "var(--font-cormorant), serif" }}>Modular Outerwear</h3>
-                  </div>
+              );
+            })()}
+
+            {/* Featured lookbook cards shown when search is empty */}
+            {searchQuery.trim() === "" && (
+              <div className="mt-10 mb-10">
+                <p className="text-[11px] tracking-[0.2em] uppercase text-stone-400 mb-5 font-semibold text-center">Featured</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    {
+                      label: "Collection 01", title: "The Archival Hoodie", badge: "Bestseller",
+                      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuA-CFV3WFomdfvuuQQO9ZrOVsO5BLo20AodD5_p_mYqNPaP8oEYLJQXyUBIAQ8tO_ItvrVm-1CM65FosTzLYm8kipSaJgG5a66Yq0S0iyX4AEg0BQdPHE-t0-6-s1zye14xcNvWFjfhm3a1Lv6Qe2l_z0HGUcW7fDAYbamj8jSLVQ4MbC6NcaGMqHjccIF0h825RbI9TTW_xuR7IEWZOaZbfCBFsfKPAKEvMFQKS3oN8bfdB_mvCorn5RMf4zeuIVL8hrEezii4lVI"
+                    },
+                    {
+                      label: "New Arrival", title: "Modular Outerwear", badge: "New",
+                      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuB8p4alS-V7pjyeK3uYbxQzdCKMyLEIiRQA6FRjFc6L0zD0Z7ed-RG-Qhk7iHWheilF6lYYIb4r8lFGa8usDA7vfUm4E3uqsA03hwUzWgqe5pvHkqkQImdvfxL4qu66Te64SLRUOVvAqnmZpNEfOP0uFeTNsJrm3-FtBvHqrSFIKESzjulaCMzSUftQaH37vkKytodvUZZhS1G5_BDICfFyJ567jBVmNCr5TLWi9nCcCUc_UBfUZljwLRpMgYEoxBb45bzkqR9-jIY"
+                    },
+                    {
+                      label: "Essentials", title: "Heritage Wool Coat", badge: "Limited",
+                      img: "https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=400&h=600&fit=crop&q=80"
+                    },
+                    {
+                      label: "Core Collection", title: "Heavyweight Tee", badge: "Classic",
+                      img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop&q=80"
+                    },
+                  ].map(({ label, title, badge, img }) => (
+                    <div
+                      key={title}
+                      onClick={() => {
+                        setSearchOpen(false);
+                        const element = document.querySelector('.purchase-card');
+                        if (element) element.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="relative aspect-[3/4] overflow-hidden rounded-xl group cursor-pointer"
+                    >
+                      <div className="absolute inset-0 bg-stone-900/15 group-hover:bg-stone-900/0 transition-colors duration-500 z-10" />
+                      <img
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        src={img}
+                        alt={title}
+                      />
+                      <div className="absolute top-3 left-3 z-20">
+                        <span className="bg-white/90 text-stone-800 text-[9px] tracking-[0.12em] uppercase font-bold px-2.5 py-1 rounded-full">
+                          {badge}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-4 left-4 text-white z-20">
+                        <p className="text-[9px] tracking-[0.15em] uppercase opacity-75 mb-0.5">{label}</p>
+                        <h3 className="text-sm font-semibold leading-tight" style={{ fontFamily: "var(--font-cormorant), serif" }}>{title}</h3>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

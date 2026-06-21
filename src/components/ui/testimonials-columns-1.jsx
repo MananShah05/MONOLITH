@@ -21,13 +21,13 @@ export const TestimonialsColumn = (props) => {
           <React.Fragment key={index}>
             {props.testimonials.map(({ text, image, name, role }, i) => (
               <div
-                className="p-8 rounded-3xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 shadow-lg shadow-primary/5 w-[320px] h-[320px] flex flex-col justify-between"
+                className="p-8 rounded-3xl border border-stone-200 bg-white shadow-lg shadow-primary/5 w-[320px] h-[320px] flex flex-col justify-between"
                 key={i}
               >
-                <div className="text-sm font-light leading-relaxed text-stone-700 dark:text-stone-300 overflow-y-auto pr-1">
-                  "{text}"
+                <div className="text-sm font-light leading-relaxed text-stone-700 overflow-y-auto pr-1">
+                  &ldquo;{text}&rdquo;
                 </div>
-                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+                <div className="flex items-center gap-3 mt-4 pt-4 border-t border-stone-100">
                   <img
                     width={40}
                     height={40}
@@ -36,8 +36,8 @@ export const TestimonialsColumn = (props) => {
                     className="h-10 w-10 rounded-full object-cover"
                   />
                   <div className="flex flex-col">
-                    <div className="font-semibold tracking-tight leading-5 text-sm text-stone-900 dark:text-stone-100">{name}</div>
-                    <div className="leading-5 opacity-60 tracking-tight text-xs text-stone-500 dark:text-stone-400">{role}</div>
+                    <div className="font-semibold tracking-tight leading-5 text-sm text-stone-900">{name}</div>
+                    <div className="leading-5 opacity-60 tracking-tight text-xs text-stone-500">{role}</div>
                   </div>
                 </div>
               </div>
