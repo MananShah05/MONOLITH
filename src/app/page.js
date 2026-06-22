@@ -624,7 +624,7 @@ export default function Home() {
         </div>
 
         {/* 3. Hero 3D Scroll Section */}
-        <section ref={scrollSectionRef} className={`scroll-container relative w-full ${isMobile ? 'h-[300vh]' : 'h-[500vh]'}`}>
+        <section ref={scrollSectionRef} className={`scroll-container relative w-full ${isMobile ? 'h-[300dvh]' : 'h-[500dvh]'}`}>
           
           {/* Sticky Canvas & Text Container */}
           <div className="sticky-viewport">
@@ -869,7 +869,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6"
+              className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6"
             >
               <div>
                 <span className="text-xs uppercase tracking-[0.3em] text-ink-muted-48">Construction</span>
@@ -894,7 +894,7 @@ export default function Home() {
                   }
                 }
               }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-8"
+              className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-4 -mx-6 px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:px-0 md:pb-0 md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:snap-none"
             >
               {[
                 {
@@ -929,7 +929,7 @@ export default function Home() {
                     y: -8,
                     transition: { duration: 0.3, ease: [0.25, 1, 0.5, 1] }
                   }}
-                  className={`group cursor-pointer bg-surface-pearl rounded-2xl p-4 border border-hairline shadow-sm hover:shadow-md transition-all duration-300 ${card.offset ? "md:mt-8" : ""}`}
+                  className={`group cursor-pointer bg-surface-pearl rounded-2xl p-4 border border-hairline shadow-sm hover:shadow-md transition-all duration-300 w-[78%] min-w-[78%] snap-center md:w-auto md:min-w-0 ${card.offset ? "md:mt-8" : ""}`}
                 >
                   <div className="aspect-square bg-stone-100 overflow-hidden mb-6 rounded-xl">
                     <img 
@@ -1025,8 +1025,8 @@ export default function Home() {
 
         {/* 10. Footer Section */}
         <footer className="bg-stone-950 border-t border-stone-900 pt-20 pb-10 px-6 relative z-20 text-stone-200">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 text-stone-200">
-            <div>
+          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-12 text-stone-200">
+            <div className="col-span-2 md:col-span-1">
               <h4 className="text-xs uppercase tracking-widest font-bold mb-6 text-stone-500">About</h4>
               <p className="text-stone-400 text-sm leading-relaxed font-light">Redefining streetwear through architectural design and uncompromising quality.</p>
             </div>
@@ -1049,7 +1049,7 @@ export default function Home() {
               </ul>
             </div>
             
-            <div>
+            <div className="col-span-2 md:col-span-1">
               <h4 className="text-xs uppercase tracking-widest font-bold mb-6 text-stone-500">Connect</h4>
               <div className="flex gap-4 mb-6 text-[14px]">
                 <a className="text-stone-400 hover:text-white transition-colors font-light" href="#">Instagram</a>

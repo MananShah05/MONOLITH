@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 export const TestimonialsColumn = (props) => {
   return (
-    <div className={`${props.className || ""} w-[320px] flex-shrink-0`}>
+    <div className={`${props.className || ""} w-[85vw] max-w-[320px] flex-shrink-0`}>
       <motion.div
         animate={{
           translateY: "-50%",
@@ -21,7 +21,7 @@ export const TestimonialsColumn = (props) => {
           <React.Fragment key={index}>
             {props.testimonials.map(({ text, image, name, role }, i) => (
               <div
-                className="p-8 rounded-3xl border border-stone-200 bg-white shadow-lg shadow-primary/5 w-[320px] h-[320px] flex flex-col justify-between"
+                className="p-8 rounded-3xl border border-stone-200 bg-white shadow-lg shadow-primary/5 w-[85vw] max-w-[320px] h-[320px] flex flex-col justify-between"
                 key={i}
               >
                 <div className="text-sm font-light leading-relaxed text-stone-700 overflow-y-auto pr-1">
